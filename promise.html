@@ -10,6 +10,74 @@
 
 <body>
 
+  <!--
+    [ 자바스크립트 동기와 비동기 ]
+  -->
+
+  <!--
+    [ ES6에서 Promise 객체가 나오기 전 동기화 방법 ]
+      - 동기화가 되어야 할 코드를 무조건 callback 함수로 전달
+      - callback 함수를 통한 동기화
+        - callback 함수로 다음에 동기적으로 실행될 코드를 넣어주면
+          callstack 입장에서는 다음에 실행할 코드를 물리적으로 제거
+        - callstack 입장에서 비동기적으로 실행할 다음 코드를 원천적으로 제거
+      - callback을 통한 동기화의 문제점 발생
+        -> 코드의 Depth가 늘어나면서 가독성이 떨어진다. (콜백지옥 callback hell)
+
+      - callback 동기화 문제점의 대안: ES6의 Promise 객체
+  -->
+
+  <script>
+
+    function test(delay, callback) {
+      setTimeout(() => {
+        callback();
+      }, delay);
+    }
+
+    /* 
+      [ 비동기적 업무 처리 상황 ]
+      start -> end -> test1 -> test2
+      - 구문이 끝나는 순서가 불규칙 
+    */
+
+    // 순서1) 콘솔 실행 (JS실행 - callstack)
+    console.log('start');
+
+    // 순서2) test 함수를 호출(JS실행)하고 setTimeout 구문을 WEB API에게 넘긴 후 다음 구문으로 넘어감(JS실행)
+    // 순서5) JS로부터 setTimeout을 넘겨받아 실행 후 콘솔문을 다시 callstack에 전달(WEB API)
+    test(0, () => console.log('test1'));
+
+    // 순서3) test 함수를 호출(JS실행)하고 setTimeout 구문을 WEB API에게 넘긴 후 다음 구문으로 넘어감(JS실행)
+    // 순서6) JS로부터 setTimeout을 넘겨받아 실행 후 콘솔문을 다시 callstack에 전달(WEB API)
+    // 순서7,8) WEB API로부터 받은 콘솔문을 callstack의 제일 마지막 스택에 등록하여 처리 (callstack은 하나뿐)
+    test(0, () => console.log('test2'));
+
+    // 순서4) 마지막 콘솔 실행 (JS실행)
+    console.log('end');
+
+    console.log('------------------------------')
+
+    /*
+      [ callback 함수를 통한 동기화 처리 ]
+      start -> test3 -> test4 -> end
+    */
+
+    console.log('start');
+
+    // callstack 입장에서는 첫번째 test 함수 호출 후 더이상 callstack에 등록할 코드가 없으므로 hold 상태
+    test(2000, () => {
+      // 아래의 코드가 통째로 WEB API에 전달되고 해당 코드는 callstack에 등록
+      console.log('test3');
+
+      test(2000, () => {
+        console.log('test4');
+
+        console.log('end');
+      })
+    })
+
+  </script>
 </body>
 
 </html>
